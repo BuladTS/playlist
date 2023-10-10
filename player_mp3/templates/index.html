@@ -1,0 +1,374 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link rel="stylesheet" href="../static/css/sidebar.css">
+    <link rel="stylesheet" href="../static/css/modals.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+    <title>Player</title>
+</head>
+<body>
+    <header class="p-3 bg-dark text-white">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+
+        <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
+            <li><button href="#" class="btn btn-dark px-2 text-white" data-modal-button="modal-1">Добавить трек</button></li>
+            <li><button href="#" class="btn btn-dark px-2 text-white" data-modal-button="modal-2">Удалить трек</button></li>
+            <li><button href="#" class="btn btn-dark px-2 text-white" data-modal-button="modal-3">Добавить плейлист</button></li>
+            <li><button href="#" class="btn btn-dark px-2 text-white" data-modal-button="modal-5">Удалить плейлист</button></li>
+            <li><button href="#" class="btn btn-dark px-2 text-white" data-modal-button="modal-6">Поменять последовательность</button></li>
+            <li><button class="btn btn-dark px-2 text-white" data-modal-button="modal-7">Редактировать плейлист</button></li>
+        </ul>
+
+
+
+      </div>
+    </div>
+    </header>
+    <main class="wrapper">
+        <div class="container"></div>
+        <div class="sidebar p-3 pb-0 pl-0">
+            <div class="window-control p-3 pb-0 pl-0" style="display: flex; flex-direction: column; justify-content: flex-end;">
+                {% for song in data_songs %}
+                    <audio src="{{ song.audio_file|cut:"player_mp3" }}" data-audio-track="{{ song.pk }}"
+                          data-song-name="{{ song.artist }}: {{ song.song_name }}"></audio>
+                {% endfor %}
+                <div class="p-3 bg-salat text-white footer d-flex flex-wrap align-items-center" style="justify-content: space-between;">
+                    <div class="p-2" style="color: black;" data-artist-song>
+                    </div>
+                    <button class="btn btn-dark" data-previous-button>Предыдущий</button>
+                    <button class="btn btn-dark" data-stop-button>Старт</button>
+                    <button class="btn btn-dark" data-next-button>Следующий</button>
+                    <div class="p-2" style="color: black;" data-show-time>
+                    </div>
+                </div>
+            </div>
+            <div class="flex-shrink-0 p-3 bg-white float-right border-left-1" style="width: 280px; left: 0; margin-right: 0; margin-left: auto;">
+            <div class="border-left-1">
+                <ul class="list-unstyled ps-0 border-left-1">
+                    {% for playlist in data_playlists %}
+                        <li class="md-1">
+                            <button class="btn btn-toggle align-items-center rounded" data-bs-toggle="collapse"
+                                    data-bs-target="#list-{{ playlist.id }}" data-queue="{{ playlist.queue.queue }}" data-id-playlist="{{ playlist.pk }}">
+                                {{ playlist.name }}
+                            </button>
+                        <div class="collapse" id=list-{{ playlist.id }}>
+                            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                                {% for queue in playlist.queue.queue %}
+                                    {% for song in data_songs %}
+                                        {% if queue == song.pk %}
+                                            <li><button href="" class="btn rounded" data-id_song="{{ song.pk }}" data-playlist-id-queue="{{ playlist.pk }}">{{ song.artist }}: {{ song.song_name }}</button></li>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+              </div>
+        </div>
+    </main>
+
+    <div class="fade-block hidden" id="modal-1" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    Добавить трек
+                    <div class="pl-3">
+                        <button class="btn btn-dark" data-modal-close>X</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form_song }}
+                        <div class="pt-3">
+                            <button class="btn btn-dark mr-5">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fade-block hidden" id="modal-2" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    Выберите произведения для того, чтобы удалить их
+                    <div class="pl-3">
+                        <button class="btn btn-dark" data-modal-close>X</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="songs p-3">
+                        <div class="list-group">
+                            {% for item in data_songs %}
+                                <button type="button" class="list-group-item list-group-item-action" data-song-id="{{ item.pk }}">{{ item.artist }}: {{ item.song_name }}</button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <form method="post" action="" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form_delete_song.songs_id }}
+                        <div class="p-3">
+                            <button class="btn btn-dark">Delete</button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fade-block hidden" id="modal-3" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header">
+                    Выберите треки, которые будут в вашем плейлисте
+                </div>
+                <div class="card-body">
+                    <div class="songs p-3">
+                        <div class="list-group">
+                            {% for item in data_songs %}
+                                <button type="button" class="list-group-item list-group-item-action" data-playlist-song-id="{{ item.pk }}">{{ item.artist }}: {{ item.song_name }}</button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="p-3 pt-1" style="display: flex; justify-content: space-between; align-items: center;">
+                        <button class="btn btn-dark" data-modal-close>Close</button>
+                        <button class="btn btn-dark" data-modal-button="modal-4" data-modal-close>Продолжить</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fade-block hidden" id="modal-4" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header" style="justify-content: space-between; display: flex; align-items: center;">
+                    Введите название плейлиста
+                    <div class="pl-3">
+                        <button class="btn btn-dark" data-modal-close>X</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form_playlist.name }}
+                        {{ form_playlist.playlist_songs_id }}
+                        <div class="p-3">
+                            <button class="btn btn-dark">Создать плейлист</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fade-block hidden" id="modal-5" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header" style="justify-content: space-between; display: flex; align-items: center;">
+                    Выберите плейлисты для удаления
+                    <div class="pl-3">
+                        <button class="btn btn-dark" data-modal-close>X</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="songs p-3">
+                        <div class="list-group">
+                            {% for item in data_playlists%}
+                                {% if item.pk != 1 %}
+                                    <button type="button" class="list-group-item list-group-item-action" data-playlist-id="{{ item.pk }}">{{ item.name }}</button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <form method="post" action="" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form_delete_playlist.playlists_id }}
+                        <div class="p-3">
+                            <button class="btn btn-dark">Удалить плейлисты</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="fade-block hidden" id="modal-6" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    Выберите плейлист для смены очереди
+                    <div class="pl-3">
+                        <button class="btn btn-dark" data-modal-close>X</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="songs p-3">
+                        <div class="list-group">
+                            {% for item in data_playlists%}
+                                {% if item.pk != 1 %}
+                                    <button type="button" class="list-group-item list-group-item-action" data-swap-playlist-id="{{ item.pk }}" data-modal-button="modal-swap-{{ item.pk }}">{{ item.name }}</button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <form method="post" action="" enctype="multipart/form-data" id="form_submit">
+                        {% csrf_token %}
+                        {{ form_swap_playlist_song.swap_playlist_queue }}
+                        {{ form_swap_playlist_song.swap_songs_id }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for playlist in data_playlists %}
+        {% if playlist.pk != 1 %}
+        <div class="fade-block hidden" id="modal-swap-{{ playlist.pk }}" data-modal>
+            <div class="modal-window">
+                <div class="card">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                        Выберите два трека для смены очереди
+                        <div class="pl-3">
+                            <button class="btn btn-dark" data-modal-close>X</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="songs p-3">
+                            <div class="list-group">
+                                {% for num in playlist.queue.queue %}
+                                    {% for song in data_songs %}
+                                        {% if song.pk == num %}
+                                            <button type="button" class="list-group-item list-group-item-action" data-swap-queue-id="{{ song.pk }}">
+                                                {{ song.artist }}: {{ song.song_name }}
+                                            </button>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <button class="btn btn-dark" form="form_submit">Сменить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    {% endfor %}
+    <div class="fade-block hidden" id="modal-7" data-modal>
+        <div class="modal-window">
+            <div class="card">
+                <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    Выберите действие и плейлист
+                    <div class="pl-3">
+                        <button class="btn btn-dark" data-modal-close>X</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="songs p-3">
+                        <div class="list-group">
+                            {% for item in data_playlists%}
+                                {% if item.pk != 1 %}
+                                    <button type="button" class="list-group-item list-group-item-action" data-redacted-playlist-id="{{ item.pk }}">{{ item.name }}</button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="p-3" style="display: flex; justify-content: space-between; align-items: center;">
+                        <button class="btn btn-dark" disabled data-modal-close data-modal-button="modal-del">Удалить песню</button>
+                        <button class="btn btn-dark" disabled data-modal-close data-modal-button="modal-add">Добавить песню</button>
+                    </div>
+                    <form method="post" action="" enctype="multipart/form-data" id="redaction-form">
+                        {% csrf_token %}
+                        {{ form_redaction_playlist.redacted_playlist }}
+                        {{ form_redaction_playlist.delete_or_append }}
+                        {{ form_redaction_playlist.moved_songs }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% for playlist in data_playlists %}
+        {% if playlist.pk != 1 %}
+            <div class="fade-block hidden" id="modal-del-{{ playlist.pk }}" data-modal>
+                <div class="modal-window">
+                    <div class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            Выберите треки для удаления
+                            <div class="pl-3">
+                                <button class="btn btn-dark" data-modal-close>X</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="songs p-3">
+                                <div class="list-group">
+                                    {% for song in data_songs %}
+                                        {% if song.pk in playlist.queue.queue %}
+                                            <button type="button" class="list-group-item list-group-item-action" data-del-add-song="{{ song.pk }}">{{ song.artist }}: {{ song.song_name }}</button>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <button class="btn btn-dark" data-modal-close form="redaction-form">Удалить из плейлиста</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    {% for playlist in data_playlists %}
+        {% if playlist.pk != 1%}
+            <div class="fade-block hidden" id="modal-add-{{ playlist.pk }}" data-modal>
+                <div class="modal-window">
+                    <div class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            Выберите треки для добавления
+                            <div class="pl-3">
+                                <button class="btn btn-dark" data-modal-close>X</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="songs p-3">
+                                <div class="list-group">
+                                    {% for song in data_songs %}
+                                        {% if not song.pk in playlist.queue.queue %}
+                                            <button type="button" class="list-group-item list-group-item-action" data-del-add-song="{{ song.pk }}">{{ song.artist }}: {{ song.song_name }}</button>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="p-3">
+                                <button class="btn btn-dark" data-modal-close form="redaction-form">Добавить треки</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endfor %}
+
+    <script type="text/javascript" src="../static/js/create_new_playlist.js"></script>
+    <script type="text/javascript" src="../static/js/modals.js"></script>
+    <script type="text/javascript" src="../static/js/sidebar.js"></script>
+    <script type="text/javascript" src="../static/js/delete_song.js"></script>
+    <script type="text/javascript" src="../static/js/delete_playlist.js"></script>
+    <script type="text/javascript" src="../static/js/swap_queue.js"></script>
+    <script type="text/javascript" src="../static/js/redaction_playlist.js"></script>
+    <script type="text/javascript" src="../static/js/player_logic.js"></script>
+    <script type="text/javascript" src="../static/js/linked_list.js"></script>
+</body>
+</html>
